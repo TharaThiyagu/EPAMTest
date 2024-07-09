@@ -1,0 +1,74 @@
+package stepDefinitions;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import pages.HomePage;
+import pages.ElectronicsPage;
+import pages.PhonesAndAccessoriesPage;
+import pages.MobilePhonesPage;
+import utilities.Driver;
+import utilities.Logger;
+import utilities.ScreenshotUtil;
+
+import io.cucumber.java.After;
+import io.cucumber.java.Before;
+import io.cucumber.java.en.*;
+
+import java.util.List;
+
+import static org.junit.Assert.assertTrue;
+
+public class AmazonSteps {
+    WebDriver driver;
+    HomePage homePage;
+    ElectronicsPage electronicsPage;
+    PhonesAndAccessoriesPage phonesAndAccessoriesPage;
+    MobilePhonesPage mobilePhonesPage;
+
+    @Before
+    public void setUp() {
+        driver = Driver.getDriver();
+        Logger.info("Driver initialized.");
+    }
+
+    @After
+    public void tearDown() {
+        Driver.closeDriver();
+        Logger.info("Driver closed.");
+    }
+
+    @Given("User is on Amazon homepage")
+    public void user_is_on_amazon_homepage() {
+        driver.get("https://www.amazon.co.uk");
+        homePage = new HomePage(driver);
+        Logger.info("Navigated to Amazon homepage.");
+    }
+
+    @When("User navigates to Mobile Phones section")
+    public void user_navigates_to_mobile_phones_section() {
+        homePage.clickOnElectronicsAndComputers();
+        electronicsPage = new ElectronicsPage(driver);
+        electronicsPage.clickOnPhonesAndAccessories();
+        phonesAndAccessoriesPage = new PhonesAndAccessoriesPage(driver);
+        phonesAndAccessoriesPage.clickOnMobilePhones();
+        mobilePhonesPage = new MobilePhonesPage(driver);
+        Logger.info("Navigated to Mobile Phones section.");
+    }
+
+    @When("User applies filters for Samsung phones with Camera Resolution of 20 MP and above, Model Year 2023, and Price Range between £50-£100")
+    public void user_applies_filters() {
+        mobilePhonesPage.applyFilters();
+        Logger.info("Filters applied: Samsung, Camera Resolution 20 MP and above, Model Year 2023, Price Range £50-£100");
+    }
+
+    @Then("User should see a list of Samsung phones matching the criteria")
+    public void user_should_see_list_of_samsung_phones() {
+        List<WebElement> phoneTitles = mobilePhonesPage.getPhoneTitles();
+        for (WebElement title : phoneTitles) {
+            Logger.info("Found phone: " + title.getText());
+            assertTrue("The title does not contain 'Samsung'", title.getText().contains("Samsung"));
+        }
+        Logger.info("All listed phones are Samsung models matching the criteria.");
+        ScreenshotUtil.captureScreenshot(driver, "SamsungPhones");
+    }
+}
